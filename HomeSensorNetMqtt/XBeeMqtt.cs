@@ -11,18 +11,41 @@ namespace HomeSensorNetMqtt
 {
     public class XBeeMqtt
     {
+        public delegate void LogMsgEventHandler(string msg);
+        public event LogMsgEventHandler LogMsgEvent;
+
         SerialPort port;
         XBee bee;
         MqttClient mqttClient;
         Regex exDevice;
         Regex exCmd;
+        string serialPortName;
+        int baudRate;
+        string mqttBrokerHost;
+        int mqttBrokerPort;
 
-        public XBeeMqtt(string serialPortName,int baudRate,string mqttBrokerHost, int mqttBrokerPort)
+        public void Log(string msg)
         {
+            if (LogMsgEvent != null)
+                LogMsgEvent(msg);
+        }
+
+        public XBeeMqtt(string _serialPortName,int _baudRate,string _mqttBrokerHost, int _mqttBrokerPort)
+        {
+            serialPortName= _serialPortName;
+            baudRate=_baudRate;
+            mqttBrokerHost=_mqttBrokerHost;
+            mqttBrokerPort=_mqttBrokerPort;
+
             exDevice = new Regex("/cmd/TankWaterer/([0-9a-fA-F]+)/[a-zA-Z]+", RegexOptions.Compiled);
             exCmd = new Regex("/cmd/TankWaterer/[0-9a-fA-F]+/([a-zA-Z]+)", RegexOptions.Compiled);
+        }
 
-            port = new SerialPort(serialPortName,baudRate);
+        public void Start()
+        {
+            Log($"Starting XBeeMqtt serialPortName={serialPortName} baudRate={baudRate} mqttBrokerHost={mqttBrokerHost} mqttBrokerPort={mqttBrokerPort}");
+
+            port = new SerialPort(serialPortName, baudRate);
             port.DataReceived += Port_DataReceived;
             port.Open();
 
@@ -36,7 +59,6 @@ namespace HomeSensorNetMqtt
             mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
             mqttClient.Subscribe(new string[] { "/cmd/TankWaterer/#" }, new byte[] { 0 });
         }
-
         private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
         {
             try
@@ -56,7 +78,7 @@ namespace HomeSensorNetMqtt
                 else
                     throw new ApplicationException($"Failed to extract command from topic '{topic}'");
 
-                System.Console.WriteLine($"device={device} cmd={command} topic={topic} msg={msgString}");
+                Log($"device={device} cmd={command} topic={topic} msg={msgString}");
 
                 UInt64 address = 0;
                 if (UInt64.TryParse(device, System.Globalization.NumberStyles.HexNumber, CultureInfo.CurrentCulture, out address))
@@ -98,7 +120,7 @@ namespace HomeSensorNetMqtt
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex.ToString());
+                Log(ex.ToString());
             }
         }
 
@@ -111,19 +133,26 @@ namespace HomeSensorNetMqtt
 
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            while (true)
+            try
             {
-                bee.readPacket();
-                if (bee.getResponse().isAvailable())
+                while (true)
                 {
-                    // Process packet.
-                    //System.Console.WriteLine($"Got a packet {bee.getResponse().getFrameDataLength()} {bee.getResponse().getPacketLength()} ");
-                    ProcessMessage(bee.getResponse());
+                    bee.readPacket();
+                    if (bee.getResponse().isAvailable())
+                    {
+                        // Process packet.
+                        //Log($"Got a packet {bee.getResponse().getFrameDataLength()} {bee.getResponse().getPacketLength()} ");
+                        ProcessMessage(bee.getResponse());
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
-                {
-                    break;
-                }
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
             }
         }
 
@@ -154,7 +183,7 @@ namespace HomeSensorNetMqtt
                         break;
                 }
                 payload = JsonConvert.SerializeObject(pkt);
-                System.Console.WriteLine(topic + " " + payload);
+                Log(topic + " " + payload);
                 mqttClient.Publish(topic, Encoding.ASCII.GetBytes(payload));
             }
             else if (msg.getApiId() == XBee.ZB_TX_STATUS_RESPONSE)
@@ -162,11 +191,11 @@ namespace HomeSensorNetMqtt
                 ZBTxStatusResponse response = new ZBTxStatusResponse();
                 msg.getZBTxStatusResponse(response);
 
-                System.Console.WriteLine("TxResponse " + (response.isSuccess() ? "OK" : $"Error: {response.getErrorCode()}"));
+                Log("TxResponse " + (response.isSuccess() ? "OK" : $"Error: {response.getErrorCode()}"));
             }
             else
             {
-                System.Console.WriteLine($"Got Packet ApiId={msg.getApiId()}");
+                Log($"Got Packet ApiId={msg.getApiId()}");
             }
         }
 

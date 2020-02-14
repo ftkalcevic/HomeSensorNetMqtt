@@ -14,11 +14,18 @@ namespace HomeSensorNetMqttTest
         static void Main(string[] args)
         {
             XBeeMqtt sensor = new XBeeMqtt("COM22", 115200, "server", 1883);
+            sensor.LogMsgEvent += Sensor_LogMsgEvent;
+            sensor.Start();
 
             //string host = deviceId.ToString("X16");
             //sensor.send(deviceId, "/cmd/" + host + "/Query", null);
 
             System.Console.ReadLine();
+        }
+
+        private static void Sensor_LogMsgEvent(string msg)
+        {
+            Console.WriteLine(msg);
         }
     }
 }

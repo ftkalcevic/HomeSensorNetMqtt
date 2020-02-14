@@ -21,10 +21,25 @@ namespace HomeSensorNetMqttService
 
         protected override void OnStart(string[] args)
         {
-            sensor = new XBeeMqtt( Properties.Settings.Default.MqttBrokerHost,
-                                   Properties.Settings.Default.MqttBrokerPort,
-                                   Properties.Settings.Default.SerialPortName,
-                                   Properties.Settings.Default.SerialPortBaudRate);
+            try
+            {
+                sensor = new XBeeMqtt(Properties.Settings.Default.SerialPortName,
+                                      Properties.Settings.Default.SerialPortBaudRate,
+                                      Properties.Settings.Default.MqttBrokerHost,
+                                      Properties.Settings.Default.MqttBrokerPort
+                                      );
+                sensor.LogMsgEvent += Sensor_LogMsgEvent;
+                sensor.Start();
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.ToString());
+            }
+        }
+
+        private void Sensor_LogMsgEvent(string msg)
+        {
+            Trace.TraceInformation(msg);
         }
 
         protected override void OnStop()
