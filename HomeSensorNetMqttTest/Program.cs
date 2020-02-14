@@ -13,7 +13,7 @@ namespace HomeSensorNetMqttTest
 
         static void Main(string[] args)
         {
-            XBeeMqtt sensor = new XBeeMqtt();
+            XBeeMqtt sensor = new XBeeMqtt("COM22", 115200, "server", 1883);
 
             //string host = deviceId.ToString("X16");
             //sensor.send(deviceId, "/cmd/" + host + "/Query", null);

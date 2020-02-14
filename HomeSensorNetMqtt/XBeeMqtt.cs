@@ -17,19 +17,19 @@ namespace HomeSensorNetMqtt
         Regex exDevice;
         Regex exCmd;
 
-        public XBeeMqtt()
+        public XBeeMqtt(string serialPortName,int baudRate,string mqttBrokerHost, int mqttBrokerPort)
         {
             exDevice = new Regex("/cmd/TankWaterer/([0-9a-fA-F]+)/[a-zA-Z]+", RegexOptions.Compiled);
             exCmd = new Regex("/cmd/TankWaterer/[0-9a-fA-F]+/([a-zA-Z]+)", RegexOptions.Compiled);
 
-            port = new SerialPort("COM22", 115200);
+            port = new SerialPort(serialPortName,baudRate);
             port.DataReceived += Port_DataReceived;
             port.Open();
 
             bee = new XBee();
             bee.setSerial(port);
 
-            mqttClient = new MqttClient("server", 1883, false, null, null, MqttSslProtocols.None);
+            mqttClient = new MqttClient(mqttBrokerHost, mqttBrokerPort, false, null, null, MqttSslProtocols.None);
             string clientId = Guid.NewGuid().ToString();
             mqttClient.Connect(clientId);
 
@@ -155,6 +155,7 @@ namespace HomeSensorNetMqtt
                 }
                 payload = JsonConvert.SerializeObject(pkt);
                 System.Console.WriteLine(topic + " " + payload);
+                mqttClient.Publish(topic, Encoding.ASCII.GetBytes(payload));
             }
             else if (msg.getApiId() == XBee.ZB_TX_STATUS_RESPONSE)
             {
