@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,18 +7,19 @@ using System.Threading.Tasks;
 
 namespace HomeSensorNetMqtt
 {
-    class STankWatererParameters: ITransmitPacket
-    {
+	[JsonObject(MemberSerialization.OptIn)]
+	class STankWatererParameters : SReceivePacket, ITransmitPacket
+	{
         public EMessageType type;
-		bool AutoVent;
-		bool AutoDepth;
-		UInt16 ValveTimeOut;
-		UInt16 TankDepth;
-		UInt16 SurfaceArea;
-		UInt16 SensorDistance;
-		UInt16 PulsesPerLitre;
-		UInt16 AutoVentTime;
-		UInt16 MaxValveOpenTime;
+		[JsonProperty] bool AutoVent;
+		[JsonProperty] bool AutoDepth;
+		[JsonProperty] UInt16 ValveTimeOut;
+		[JsonProperty] UInt16 TankDepth;
+		[JsonProperty] UInt16 SurfaceArea;
+		[JsonProperty] UInt16 SensorDistance;
+		[JsonProperty] UInt16 PulsesPerLitre;
+		[JsonProperty] UInt16 AutoVentTime;
+		[JsonProperty] UInt16 MaxValveOpenTime;
 
 		public STankWatererParameters(byte[] body) 
         {
@@ -66,22 +67,6 @@ namespace HomeSensorNetMqtt
 			PulsesPerLitre = msg.PulsesPerLitre;
 			AutoVentTime = msg.AutoVentTime;
 			MaxValveOpenTime = msg.MaxValveOpenTime;
-		}
-
-		public string makeJSON()
-		{
-			string json = "{";
-			json += $"\"AutoVent\": {AutoVent.ToString()},";
-			json += $"\"AutoDepth\": {AutoDepth.ToString()},";
-			json += $"\"ValveTimeOut\": {ValveTimeOut.ToString()},";
-			json += $"\"TankDepth\": {TankDepth.ToString()},";
-			json += $"\"SurfaceArea\": {SurfaceArea.ToString()},";
-			json += $"\"SensorDistance\": {SensorDistance.ToString()},";
-			json += $"\"PulsesPerLitre\": {PulsesPerLitre.ToString()},";
-			json += $"\"AutoVentTime\": {AutoVentTime.ToString()},";
-			json += $"\"MaxValveOpenTime\": {MaxValveOpenTime.ToString()}";
-			json += "}";
-			return json;
 		}
 	}
 }

@@ -137,24 +137,23 @@ namespace HomeSensorNetMqtt
 
                 string topic = "";
                 string payload = "";
+                SReceivePacket pkt = null;
                 switch ((EMessageType)body[0])
                 {
                     case EMessageType.TankWatererStats:
-                        var stats = new STankWatererStats(body);
+                        pkt = new STankWatererStats(body);
                         topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/info";
-                        payload = stats.makeJSON();
                         break;
                     case EMessageType.TankWatererManual:
-                        var manual = new STankWatererValve(body);
+                        pkt = new STankWatererValve(body);
                         topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/manual";
-                        payload = manual.makeJSON();
                         break;
                     case EMessageType.TankWatererParameters:
-                        var param = new STankWatererParameters(body);
+                        pkt = new STankWatererParameters(body);
                         topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/parameters";
-                        payload = param.makeJSON();
                         break;
                 }
+                payload = JsonConvert.SerializeObject(pkt);
                 System.Console.WriteLine(topic + " " + payload);
             }
             else if (msg.getApiId() == XBee.ZB_TX_STATUS_RESPONSE)

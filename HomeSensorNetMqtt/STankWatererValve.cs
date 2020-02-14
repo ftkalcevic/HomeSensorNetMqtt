@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace HomeSensorNetMqtt
 {
-    class STankWatererValve : ITransmitPacket
+    [JsonObject(MemberSerialization.OptIn)]
+    class STankWatererValve : SReceivePacket, ITransmitPacket
     {
         public EMessageType type;
-        public bool ValveOpen;
+        [JsonProperty] public bool ValveOpen;
 
         public STankWatererValve()
         {
@@ -26,14 +27,6 @@ namespace HomeSensorNetMqtt
         {
             type = EMessageType.TankWatererValve;
             ValveOpen = body[1] != 0;
-        }
-
-        public string makeJSON()
-        {
-            string json = "{";
-            json += $"\"ValveOpen\": {ValveOpen.ToString()}";
-            json += "}";
-            return json;
         }
 
         public byte[] GetBody()
