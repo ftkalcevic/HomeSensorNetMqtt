@@ -181,6 +181,10 @@ namespace HomeSensorNetMqtt
                         pkt = new STankWatererParameters(body);
                         topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/parameters";
                         break;
+                    case EMessageType.PotPlantStats:
+                        pkt = new SPotPlantStats(body);
+                        topic = $"/tele/PotPlant/{response.getRemoteAddress64().get().ToString("X16")}/info";
+                        break;
                 }
                 payload = JsonConvert.SerializeObject(pkt);
                 Log(topic + " " + payload);
