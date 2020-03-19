@@ -158,48 +158,59 @@ namespace HomeSensorNetMqtt
 
         private void ProcessMessage(XBeeResponse msg)
         {
-            if (msg.getApiId() == XBee.ZB_RX_RESPONSE)
+            try
             {
-                ZBRxResponse response = new ZBRxResponse();
-                msg.getZBRxResponse(response);
-                byte[] body = response.getData();
-
-                string topic = "";
-                string payload = "";
-                SReceivePacket pkt = null;
-                switch ((EMessageType)body[0])
+                if (msg.getApiId() == XBee.ZB_RX_RESPONSE)
                 {
-                    case EMessageType.TankWatererStats:
-                        pkt = new STankWatererStats(body);
-                        topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/info";
-                        break;
-                    case EMessageType.TankWatererManual:
-                        pkt = new STankWatererValve(body);
-                        topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/manual";
-                        break;
-                    case EMessageType.TankWatererParameters:
-                        pkt = new STankWatererParameters(body);
-                        topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/parameters";
-                        break;
-                    case EMessageType.PotPlantStats:
-                        pkt = new SPotPlantStats(body);
-                        topic = $"/tele/PotPlant/{response.getRemoteAddress64().get().ToString("X16")}/info";
-                        break;
-                }
-                payload = JsonConvert.SerializeObject(pkt);
-                Log(topic + " " + payload);
-                mqttClient.Publish(topic, Encoding.ASCII.GetBytes(payload));
-            }
-            else if (msg.getApiId() == XBee.ZB_TX_STATUS_RESPONSE)
-            {
-                ZBTxStatusResponse response = new ZBTxStatusResponse();
-                msg.getZBTxStatusResponse(response);
+                    ZBRxResponse response = new ZBRxResponse();
+                    msg.getZBRxResponse(response);
+                    byte[] body = response.getData();
 
-                Log("TxResponse " + (response.isSuccess() ? "OK" : $"Error: {response.getErrorCode()}"));
+                    string topic = "";
+                    string payload = "";
+                    SReceivePacket pkt = null;
+                    switch ((EMessageType)body[0])
+                    {
+                        case EMessageType.TankWatererStats:
+                            pkt = new STankWatererStats(body);
+                            topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/info";
+                            break;
+                        case EMessageType.TankWatererManual:
+                            pkt = new STankWatererValve(body);
+                            topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/manual";
+                            break;
+                        case EMessageType.TankWatererParameters:
+                            pkt = new STankWatererParameters(body);
+                            topic = $"/tele/TankWaterer/{response.getRemoteAddress64().get().ToString("X16")}/parameters";
+                            break;
+                        case EMessageType.PotPlantStats:
+                            pkt = new SPotPlantStats(body);
+                            topic = $"/tele/PotPlant/{response.getRemoteAddress64().get().ToString("X16")}/info";
+                            break;
+                        case EMessageType.RainGaugeStats:
+                            pkt = new SRainGaugeStats(body);
+                            topic = $"/tele/RainGauge/{response.getRemoteAddress64().get().ToString("X16")}/info";
+                            break;
+                    }
+                    payload = JsonConvert.SerializeObject(pkt);
+                    Log(topic + " " + payload);
+                    mqttClient.Publish(topic, Encoding.ASCII.GetBytes(payload));
+                }
+                else if (msg.getApiId() == XBee.ZB_TX_STATUS_RESPONSE)
+                {
+                    ZBTxStatusResponse response = new ZBTxStatusResponse();
+                    msg.getZBTxStatusResponse(response);
+
+                    Log("TxResponse " + (response.isSuccess() ? "OK" : $"Error: {response.getErrorCode()}"));
+                }
+                else
+                {
+                    Log($"Got Packet ApiId={msg.getApiId()}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Log($"Got Packet ApiId={msg.getApiId()}");
+                Log("Unhandled exception while processing message: " + ex.ToString());
             }
         }
 

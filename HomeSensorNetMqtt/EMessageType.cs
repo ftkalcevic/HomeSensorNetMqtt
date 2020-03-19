@@ -14,6 +14,8 @@ namespace HomeSensorNetMqtt
 
         PotPlantStats = 10,
 
+        RainGaugeStats = 20,
+
         TankWatererQueryStats = 50,
         TankWatererQueryParameters = 51,
         TankWatererResetCounters = 52,
