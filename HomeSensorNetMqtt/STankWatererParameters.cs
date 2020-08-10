@@ -20,6 +20,7 @@ namespace HomeSensorNetMqtt
 		[JsonProperty] UInt16 PulsesPerLitre;
 		[JsonProperty] UInt16 AutoVentTime;
 		[JsonProperty] UInt16 MaxValveOpenTime;
+		[JsonProperty] UInt16 MaxWater24Hours;
 
 		public STankWatererParameters(byte[] body) 
         {
@@ -33,6 +34,7 @@ namespace HomeSensorNetMqtt
 			PulsesPerLitre = BitConverter.ToUInt16(body, 11);
 			AutoVentTime = BitConverter.ToUInt16(body, 13);
 			MaxValveOpenTime = BitConverter.ToUInt16(body, 15);
+			MaxWater24Hours = BitConverter.ToUInt16(body, 17);
 		}
 
 		public STankWatererParameters()
@@ -42,7 +44,7 @@ namespace HomeSensorNetMqtt
 
 		public byte[] GetBody()
 		{
-			byte[] msg = new byte[17];
+			byte[] msg = new byte[19];
 			msg[0] = (byte)type;
 			msg[1] = (byte)(AutoVent ? 1 : 0);
 			msg[2] = (byte)(AutoDepth ? 1 : 0);
@@ -53,6 +55,7 @@ namespace HomeSensorNetMqtt
 			BitConverter.GetBytes(PulsesPerLitre).CopyTo(msg, 11);
 			BitConverter.GetBytes(AutoVentTime).CopyTo(msg, 13);
 			BitConverter.GetBytes(MaxValveOpenTime).CopyTo(msg, 15);
+			BitConverter.GetBytes(MaxWater24Hours).CopyTo(msg, 17);
 			return msg;
 		}
 
@@ -67,6 +70,7 @@ namespace HomeSensorNetMqtt
 			PulsesPerLitre = msg.PulsesPerLitre;
 			AutoVentTime = msg.AutoVentTime;
 			MaxValveOpenTime = msg.MaxValveOpenTime;
+			MaxWater24Hours = msg.MaxWater24Hours;
 		}
 	}
 }
